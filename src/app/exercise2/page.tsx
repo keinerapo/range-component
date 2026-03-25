@@ -3,6 +3,7 @@
 import { Range } from '@/components/range/Range'
 import { ReadOnlyLabel } from '@/components/range/ReadOnlyLabel'
 import { PageLayout } from '@/components/ui/PageLayout'
+import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { useFixedRange } from '@/hooks/useFixedRange'
 import { RANGE_LABELS } from '@/constants/labels'
 import type { FixedRangeData } from '@/services/rangeService.types'
@@ -10,6 +11,11 @@ import Link from 'next/link'
 
 function PageContent({ data }: { data: FixedRangeData }) {
   const stops = data.rangeValues
+
+  if (!stops || stops.length < 2) {
+    return <ErrorMessage message="Fixed range data is invalid." />
+  }
+
   const absMin = stops[0]
   const absMax = stops[stops.length - 1]
 
@@ -46,10 +52,10 @@ function PageContent({ data }: { data: FixedRangeData }) {
 }
 
 export default function Exercise2Page() {
-  const state = useFixedRange()
+  const { refetch, ...state } = useFixedRange()
 
   return (
-    <PageLayout state={state}>
+    <PageLayout state={state} onRetry={refetch}>
       {(data) => <PageContent data={data} />}
     </PageLayout>
   )

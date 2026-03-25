@@ -60,11 +60,11 @@ The project was created **without any scaffolding CLI** (`create-next-app`, `npm
 
 ## Key technical decisions
 
-**`useFetch` — latest ref pattern**
-Avoids the `useEffect` dependency warning without using `eslint-disable`. A `useRef` keeps the fetcher reference up to date, and a second `useEffect` runs the fetch only on mount.
+**`useFetch` — cancel-safe fetch with refetch**
+The hook uses a `cancelled` flag to prevent state updates after unmount, and exposes a `refetch` function via an incrementing `fetchKey`. The `fetcher` must have a stable identity (module-level function or wrapped in `useCallback`).
 
-**`useRangeSlider` — decoupled logic**
-All slider logic (keyboard, pointer, ARIA, clamp, snap) lives in a standalone hook. Components are pure presentation. This makes the logic trivial to test in isolation.
+**`useRangeSlider` — decoupled logic with ref-synced state**
+All slider logic (keyboard, pointer, ARIA, clamp, snap) lives in a standalone hook. Components are pure presentation. Refs (`minValueRef`, `maxValueRef`) keep state accessible inside closures to prevent stale reads during rapid interactions. This makes the logic trivial to test in isolation.
 
 ## Accessibility
 
@@ -78,17 +78,17 @@ All slider logic (keyboard, pointer, ARIA, clamp, snap) lives in a standalone ho
 
 | Layer | Tool | Tests |
 |-------|------|-------|
-| Unit (utils, hooks, components) | Vitest + RTL | 128 |
-| Integration (full pages) | Vitest + RTL + MSW | included in the 128 |
+| Unit (utils, hooks, components) | Vitest + RTL | 139 |
+| Integration (full pages) | Vitest + RTL + MSW | included in the 139 |
 | E2E (real browser) | Playwright + Chromium | 43 |
 
 Code coverage from `pnpm test:coverage`:
 
 | Metric | Coverage |
 |--------|----------|
-| Statements | 98.83% |
-| Branches | 95.29% |
+| Statements | 98.36% |
+| Branches | 94.62% |
 | Functions | 100% |
-| Lines | 99.35% |
+| Lines | 98.75% |
 
 E2E tests specifically cover keyboard-driven slider movement in both exercises, asserting `aria-valuenow` after each key press.

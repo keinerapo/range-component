@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { renderHook, waitFor, act } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/mocks/server'
 import { useFetch } from '@/hooks/useFetch'
@@ -92,6 +92,38 @@ describe('useFetch<T>', () => {
       const { result, unmount } = renderHook(() => useFetch(fetchNormal))
       unmount()
       expect(result.current.status).toBe('loading')
+    })
+  })
+
+  describe('refetch', () => {
+    it('returns a refetch function', () => {
+      const { result } = renderHook(() => useFetch(fetchNormal))
+      expect(typeof result.current.refetch).toBe('function')
+    })
+
+    it('refetch resets to loading and re-fetches data', async () => {
+      const { result } = renderHook(() => useFetch(fetchNormal))
+      await waitFor(() => expect(result.current.status).toBe('success'))
+
+      act(() => result.current.refetch())
+      expect(result.current.status).toBe('loading')
+      await waitFor(() => expect(result.current.status).toBe('success'))
+      expect(result.current).toMatchObject({ status: 'success', data: { min: 1, max: 100 } })
+    })
+
+    it('refetch can recover from error state', async () => {
+      server.use(
+        http.get('/api/range/normal', () =>
+          new HttpResponse(null, { status: 500 })
+        )
+      )
+      const { result } = renderHook(() => useFetch(fetchNormal))
+      await waitFor(() => expect(result.current.status).toBe('error'))
+
+      server.resetHandlers()
+      act(() => result.current.refetch())
+      await waitFor(() => expect(result.current.status).toBe('success'))
+      expect(result.current).toMatchObject({ status: 'success', data: { min: 1, max: 100 } })
     })
   })
 })

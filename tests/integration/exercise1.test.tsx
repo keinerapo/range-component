@@ -87,7 +87,7 @@ describe('Exercise 1 — Normal Range (integration)', () => {
     await userEvent.type(input, '-50')
     await userEvent.keyboard('{Enter}')
 
-    await waitFor(() => expect(screen.getByText('1 €')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText(/1,00\s€/)).toBeInTheDocument())
   })
 
   it('has no axe violations on full render', async () => {

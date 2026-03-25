@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { PageLayout } from '@/components/ui/PageLayout'
 
@@ -32,5 +32,26 @@ describe('PageLayout', () => {
     const main = screen.getByRole('main')
     expect(main).toBeInTheDocument()
     expect(main).toHaveClass('min-h-screen')
+  })
+
+  it('renders a retry button in error state when onRetry is provided', () => {
+    render(
+      <PageLayout
+        state={{ status: 'error', error: 'Failed' }}
+        onRetry={vi.fn()}
+      >
+        {() => null}
+      </PageLayout>
+    )
+    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
+  })
+
+  it('does not render a retry button in error state when onRetry is not provided', () => {
+    render(
+      <PageLayout state={{ status: 'error', error: 'Failed' }}>
+        {() => null}
+      </PageLayout>
+    )
+    expect(screen.queryByRole('button', { name: /retry/i })).not.toBeInTheDocument()
   })
 })

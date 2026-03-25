@@ -16,7 +16,7 @@ describe('EditableLabel', () => {
     render(
       <EditableLabel value={25} min={1} max={100} onChange={vi.fn()} label="Minimum price" />
     )
-    expect(screen.getByText('25 €')).toBeInTheDocument()
+    expect(screen.getByText(/25,00\s€/)).toBeInTheDocument()
   })
 
   it('switches to input when clicked', async () => {
@@ -26,6 +26,16 @@ describe('EditableLabel', () => {
     await userEvent.click(screen.getByRole('button'))
     expect(screen.getByRole('spinbutton')).toBeInTheDocument()
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it('input has min and max attributes', async () => {
+    render(
+      <EditableLabel value={25} min={1} max={100} onChange={vi.fn()} label="Minimum price" />
+    )
+    await userEvent.click(screen.getByRole('button'))
+    const input = screen.getByRole('spinbutton')
+    expect(input).toHaveAttribute('min', '1')
+    expect(input).toHaveAttribute('max', '100')
   })
 
   it('calls onChange with the new value on Enter', async () => {
@@ -92,7 +102,7 @@ describe('EditableLabel', () => {
     await userEvent.keyboard('{Escape}')
     expect(onChange).not.toHaveBeenCalled()
     expect(screen.getByRole('button')).toBeInTheDocument()
-    expect(screen.getByText('25 €')).toBeInTheDocument()
+    expect(screen.getByText(/25,00\s€/)).toBeInTheDocument()
   })
 
   it('keeps original value when input is empty and Enter is pressed', async () => {
@@ -104,6 +114,22 @@ describe('EditableLabel', () => {
     const input = screen.getByRole('spinbutton')
     await userEvent.clear(input)
     await userEvent.keyboard('{Enter}')
-    expect(onChange).toHaveBeenCalledWith(25)
+    expect(onChange).not.toHaveBeenCalled()
+    expect(screen.getByRole('button')).toBeInTheDocument()
+    expect(screen.getByText(/25,00\s€/)).toBeInTheDocument()
+  })
+
+  it('does not call onChange when committed value equals current value', async () => {
+    const onChange = vi.fn()
+    render(
+      <EditableLabel value={25} min={1} max={100} onChange={onChange} label="Minimum price" />
+    )
+    await userEvent.click(screen.getByRole('button'))
+    const input = screen.getByRole('spinbutton')
+    await userEvent.clear(input)
+    await userEvent.type(input, '25')
+    await userEvent.keyboard('{Enter}')
+    expect(onChange).not.toHaveBeenCalled()
+    expect(screen.getByRole('button')).toBeInTheDocument()
   })
 })

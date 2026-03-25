@@ -1,22 +1,17 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import type { FetchState } from '@/types/fetch'
 
-type FetchState<T> =
-  | { status: 'loading' }
-  | { status: 'error'; error: string }
-  | { status: 'success'; data: T }
+export type UseFetchResult<T> = FetchState<T> & { refetch: () => void }
 
-export function useFetch<T>(fetcher: () => Promise<T>): FetchState<T> {
+export function useFetch<T>(fetcher: () => Promise<T>): UseFetchResult<T> {
   const [state, setState] = useState<FetchState<T>>({ status: 'loading' })
-  const fetcherRef = useRef(fetcher)
-
-  useEffect(() => {
-    fetcherRef.current = fetcher
-  })
+  const [fetchKey, setFetchKey] = useState(0)
 
   useEffect(() => {
     let cancelled = false
+    setState({ status: 'loading' }) // eslint-disable-line react-hooks/set-state-in-effect -- intentional: reset on refetch/fetcher change
 
-    fetcherRef.current()
+    fetcher()
       .then((data) => {
         if (!cancelled) setState({ status: 'success', data })
       })
@@ -24,13 +19,15 @@ export function useFetch<T>(fetcher: () => Promise<T>): FetchState<T> {
         if (!cancelled) {
           setState({
             status: 'error',
-            error: (err as Error).message,
+            error: err instanceof Error ? err.message : String(err),
           })
         }
       })
 
     return () => { cancelled = true }
-  }, [])
+  }, [fetcher, fetchKey])
 
-  return state
+  const refetch = useCallback(() => setFetchKey((k) => k + 1), [])
+
+  return { ...state, refetch }
 }

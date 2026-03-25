@@ -54,10 +54,10 @@ function PageContent({ data }: { data: NormalRangeData }) {
 }
 
 export default function Exercise1Page() {
-  const state = useNormalRange()
+  const { refetch, ...state } = useNormalRange()
 
   return (
-    <PageLayout state={state}>
+    <PageLayout state={state} onRetry={refetch}>
       {(data) => <PageContent data={data} />}
     </PageLayout>
   )

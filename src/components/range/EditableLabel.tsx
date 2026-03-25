@@ -32,7 +32,7 @@ export function EditableLabel({ value, min, max, onChange, label }: EditableLabe
   const commit = () => {
     const parsed = parseFloat(draft)
     const next = isNaN(parsed) ? value : clamp(parsed, min, max)
-    onChange(next)
+    if (next !== value) onChange(next)
     setIsEditing(false)
   }
 
@@ -46,6 +46,8 @@ export function EditableLabel({ value, min, max, onChange, label }: EditableLabe
         ref={inputRef}
         type="number"
         value={draft}
+        min={min}
+        max={max}
         aria-label={label}
         className="w-20 text-center text-sm font-medium text-gray-900 border border-gray-900 rounded px-1 py-0.5 focus:outline-none focus:ring-2 focus:ring-gray-900"
         onChange={(e) => setDraft(e.target.value)}

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useRangeSlider } from '@/hooks/useRangeSlider'
 
@@ -264,16 +264,26 @@ describe('useRangeSlider — keyboard: fixed / stops mode', () => {
     expect(result.current.maxValue).toBe(70.99)
   })
 
-  it('PageUp and PageDown are no-ops in fixed mode', () => {
+  it('PageUp moves to next stop in fixed mode', () => {
     const { result } = renderHook(() => useRangeSlider(fixedOptions))
     act(() => result.current.setMinValue(10.99))
-    const before = result.current.minValue
     act(() => {
       result.current.handleKeyDown('min')(
         { key: 'PageUp', preventDefault: () => {} } as React.KeyboardEvent
       )
     })
-    expect(result.current.minValue).toBe(before)
+    expect(result.current.minValue).toBe(30.99)
+  })
+
+  it('PageDown moves to previous stop in fixed mode', () => {
+    const { result } = renderHook(() => useRangeSlider(fixedOptions))
+    act(() => result.current.setMinValue(10.99))
+    act(() => {
+      result.current.handleKeyDown('min')(
+        { key: 'PageDown', preventDefault: () => {} } as React.KeyboardEvent
+      )
+    })
+    expect(result.current.minValue).toBe(5.99)
   })
 })
 
@@ -288,7 +298,7 @@ describe('useRangeSlider — ARIA attributes', () => {
     expect(props['aria-valuenow']).toBe(20)
     expect(props['aria-valuemin']).toBe(1)
     expect(props['aria-valuemax']).toBe(80)
-    expect(props['aria-valuetext']).toBe('20 €')
+    expect(props['aria-valuetext']).toMatch(/20,00\s€/)
   })
 
   it('thumbAriaProps returns correct ARIA for max thumb', () => {
@@ -299,7 +309,7 @@ describe('useRangeSlider — ARIA attributes', () => {
     expect(props['aria-valuenow']).toBe(80)
     expect(props['aria-valuemin']).toBe(20)
     expect(props['aria-valuemax']).toBe(100)
-    expect(props['aria-valuetext']).toBe('80 €')
+    expect(props['aria-valuetext']).toMatch(/80,00\s€/)
   })
 
   it('ARIA attributes update when values change', () => {
@@ -307,7 +317,7 @@ describe('useRangeSlider — ARIA attributes', () => {
     act(() => result.current.setMinValue(30))
     const props = result.current.thumbAriaProps('min')
     expect(props['aria-valuenow']).toBe(30)
-    expect(props['aria-valuetext']).toBe('30 €')
+    expect(props['aria-valuetext']).toMatch(/30,00\s€/)
   })
 })
 

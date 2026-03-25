@@ -76,7 +76,7 @@ describe('Exercise 2 — Fixed Range (integration)', () => {
     render(<Exercise2Page />)
     await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument())
 
-    const label = screen.getAllByText('1.99 €')[0]
+    const label = screen.getAllByText(/1,99\s€/)[0]
     await userEvent.click(label)
     expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument()
   })
@@ -86,8 +86,8 @@ describe('Exercise 2 — Fixed Range (integration)', () => {
     await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument())
 
     const [leftThumb, rightThumb] = screen.getAllByRole('slider')
-    expect(leftThumb).toHaveAttribute('aria-valuetext', '1.99 €')
-    expect(rightThumb).toHaveAttribute('aria-valuetext', '70.99 €')
+    expect(leftThumb.getAttribute('aria-valuetext')).toMatch(/1,99\s€/)
+    expect(rightThumb.getAttribute('aria-valuetext')).toMatch(/70,99\s€/)
   })
 
   it('has no axe violations on full render', async () => {

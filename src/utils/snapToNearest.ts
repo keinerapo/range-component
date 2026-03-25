@@ -4,8 +4,8 @@
  */
 export function snapToNearest(value: number, stops: number[]): number {
   if (stops.length === 0) return value
-  return stops.reduce((closest, stop) =>
-    Math.abs(stop - value) < Math.abs(closest - value) ? stop : closest
+  return stops.reduce((nearest, candidate) =>
+    Math.abs(candidate - value) < Math.abs(nearest - value) ? candidate : nearest
   )
 }
 

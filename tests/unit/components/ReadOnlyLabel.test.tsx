@@ -6,18 +6,18 @@ import { ReadOnlyLabel } from '@/components/range/ReadOnlyLabel'
 describe('ReadOnlyLabel', () => {
   it('renders the formatted value with 2 decimal places', () => {
     render(<ReadOnlyLabel value={5.99} label="Minimum price" />)
-    expect(screen.getByText('5.99 €')).toBeInTheDocument()
+    expect(screen.getByText(/5,99\s€/)).toBeInTheDocument()
   })
 
-  it('renders integer values without decimal places', () => {
+  it('renders integer values with 2 decimal places', () => {
     render(<ReadOnlyLabel value={100} label="Maximum price" />)
-    expect(screen.getByText('100 €')).toBeInTheDocument()
+    expect(screen.getByText(/100,00\s€/)).toBeInTheDocument()
   })
 
   it('has an accessible aria-label', () => {
     render(<ReadOnlyLabel value={5.99} label="Minimum price" />)
     expect(
-      screen.getByLabelText(/minimum price: 5.99 €/i)
+      screen.getByLabelText(/minimum price: 5,99/i)
     ).toBeInTheDocument()
   })
 
@@ -31,8 +31,8 @@ describe('ReadOnlyLabel', () => {
   it('does not change on click', async () => {
     const onChange = vi.fn()
     render(<ReadOnlyLabel value={5.99} label="Minimum price" />)
-    await userEvent.click(screen.getByText('5.99 €'))
+    await userEvent.click(screen.getByText(/5,99\s€/))
     expect(onChange).not.toHaveBeenCalled()
-    expect(screen.getByText('5.99 €')).toBeInTheDocument()
+    expect(screen.getByText(/5,99\s€/)).toBeInTheDocument()
   })
 })
