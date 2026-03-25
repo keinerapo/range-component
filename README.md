@@ -98,17 +98,19 @@ The internal functions of the hook (`handleKeyDown`, `handlePointerDown`, `handl
 
 | Layer | Tool | Tests |
 |-------|------|-------|
-| Unit (utils, hooks, components) | Vitest + RTL | 139 |
-| Integration (full pages) | Vitest + RTL + MSW | included in the 139 |
+| Unit (utils, hooks, components) | Vitest + RTL | 145 |
+| Integration (full pages) | Vitest + RTL + MSW | included in the 145 |
 | E2E (real browser) | Playwright + Chromium | 43 |
 
 Code coverage from `pnpm test:coverage`:
 
 | Metric | Coverage |
 |--------|----------|
-| Statements | 98.36% |
-| Branches | 94.62% |
+| Statements | 100% |
+| Branches | 97.89% |
 | Functions | 100% |
-| Lines | 98.75% |
+| Lines | 100% |
+
+> The remaining 2.11% branch gap is a single `if (!cancelled)` guard inside an async `.then()` closure in `useFetch`. The V8 instrumenter cannot track the `cancelled = true` branch when it fires after a Promise resolves post-unmount; the behaviour is verified by a dedicated cancellation test.
 
 E2E tests specifically cover keyboard-driven slider movement in both exercises, asserting `aria-valuenow` after each key press.

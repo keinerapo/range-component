@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { http, HttpResponse } from 'msw'
+import { server } from '@/mocks/server'
 import { axe } from '@/mocks/setup'
 import Exercise2Page from '@/app/exercise2/page'
 
@@ -95,5 +97,17 @@ describe('Exercise 2 — Fixed Range (integration)', () => {
     await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument())
     const results = await axe(container)
     expect(results).toHaveNoViolations()
+  })
+
+  it('renders an error message when the API returns fewer than 2 stops', async () => {
+    server.use(
+      http.get('/api/range/fixed', () =>
+        HttpResponse.json({ rangeValues: [1.99] })
+      )
+    )
+    render(<Exercise2Page />)
+    await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument())
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    expect(screen.getByText(/fixed range data is invalid/i)).toBeInTheDocument()
   })
 })

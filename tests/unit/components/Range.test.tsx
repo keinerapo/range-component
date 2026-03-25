@@ -103,4 +103,21 @@ describe('Range', () => {
 
     expect(Number(minThumb.getAttribute('aria-valuenow'))).toBeGreaterThan(1)
   })
+
+  it('pointer move during drag on max thumb updates maxValue', () => {
+    render(<Range {...baseProps} />)
+    const track = screen.getByTestId('range-track')
+    track.setPointerCapture = vi.fn()
+
+    vi.spyOn(track, 'getBoundingClientRect').mockReturnValue({
+      left: 0, right: 200, width: 200, top: 0, bottom: 10, height: 10, x: 0, y: 0,
+      toJSON: () => ({}),
+    } as DOMRect)
+
+    const [, maxThumb] = screen.getAllByRole('slider')
+    fireEvent.pointerDown(maxThumb, { pointerId: 1, clientX: 200 })
+    fireEvent.pointerMove(track, { pointerId: 1, clientX: 100 })
+
+    expect(Number(maxThumb.getAttribute('aria-valuenow'))).toBeLessThan(100)
+  })
 })

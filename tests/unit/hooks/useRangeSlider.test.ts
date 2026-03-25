@@ -368,4 +368,14 @@ describe('useRangeSlider — pointer events', () => {
     })
     expect(result.current.minValue).toBe(10)
   })
+
+  it('handlePointerMove does not change value when trackRef is null', () => {
+    const { result } = renderHook(() => useRangeSlider(baseOptions))
+    act(() => result.current.handlePointerDown('min')(makePointerEvent(0)))
+    expect(result.current.isDragging).toBe(true)
+
+    const before = result.current.minValue
+    act(() => result.current.handlePointerMove(makePointerEvent(50)))
+    expect(result.current.minValue).toBe(before)
+  })
 })

@@ -93,6 +93,22 @@ describe('useFetch<T>', () => {
       unmount()
       expect(result.current.status).toBe('loading')
     })
+
+    it('does not call setState when the component unmounts before the fetch resolves', async () => {
+      let resolvePromise!: (value: unknown) => void
+      const slowFetcher = () =>
+        new Promise<{ min: number; max: number }>((res) => {
+          resolvePromise = res as (value: unknown) => void
+        })
+
+      const { result, unmount } = renderHook(() => useFetch(slowFetcher))
+      expect(result.current.status).toBe('loading')
+
+      unmount()
+      act(() => resolvePromise({ min: 1, max: 100 }))
+
+      expect(result.current.status).toBe('loading')
+    })
   })
 
   describe('refetch', () => {
