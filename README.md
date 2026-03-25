@@ -18,6 +18,20 @@ pnpm install
 pnpm exec playwright install chromium
 ```
 
+## Environment variables
+
+Copy `.env.example` to `.env.local` and fill in the values if needed:
+
+```bash
+cp .env.example .env.local
+```
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NEXT_PUBLIC_API_URL` | No | Absolute base URL of the deployment. Required only if the range service is called from a Server Component or any Node.js context. Leave empty for local development — the service falls back to the relative path `/api/range` resolved by the browser. |
+
+For a standard local or Vercel deployment this file can be left empty or omitted entirely.
+
 ## Commands
 
 ```bash
@@ -63,8 +77,14 @@ The project was created **without any scaffolding CLI** (`create-next-app`, `npm
 **`useFetch` — cancel-safe fetch with refetch**
 The hook uses a `cancelled` flag to prevent state updates after unmount, and exposes a `refetch` function via an incrementing `fetchKey`. The `fetcher` must have a stable identity (module-level function or wrapped in `useCallback`).
 
+**`rangeService` — URL resolved from environment**
+`BASE_URL` is built from `NEXT_PUBLIC_API_URL` when the variable is set, falling back to the relative path `/api/range` otherwise. This makes the service safe to call from a Server Component or any Node.js context (where relative URLs are invalid), while requiring zero configuration for the current Client Component usage.
+
 **`useRangeSlider` — decoupled logic with ref-synced state**
 All slider logic (keyboard, pointer, ARIA, clamp, snap) lives in a standalone hook. Components are pure presentation. Refs (`minValueRef`, `maxValueRef`) keep state accessible inside closures to prevent stale reads during rapid interactions. This makes the logic trivial to test in isolation.
+
+**No `useCallback` in `useRangeSlider` — intentional**
+The internal functions of the hook (`handleKeyDown`, `handlePointerDown`, `handlePointerMove`, etc.) are not wrapped in `useCallback`. This is a deliberate decision: React's own documentation states that `useCallback` is a performance optimization that should only be applied when there is a measurable rendering problem — not as a preventive measure. In this project, `RangeThumb` and `RangeTrack` are not wrapped in `React.memo`, so stabilising callback references would have zero effect on re-renders. The slider renders a minimal DOM (two thumbs + one track), and even during drag at 60fps there is no perceptible performance bottleneck. Adding `useCallback` without a measurable problem would only introduce a complex dependency graph across tightly coupled internal functions (each one referencing state, refs, and other functions), increasing maintenance cost and cognitive load for no practical gain.
 
 ## Accessibility
 

@@ -1,6 +1,8 @@
 import type { NormalRangeData, FixedRangeData } from './rangeService.types'
 
-const BASE_URL = '/api/range'
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL
+  ? `${process.env.NEXT_PUBLIC_API_URL}/api/range`
+  : '/api/range'
 
 export async function getNormalRange(): Promise<NormalRangeData> {
   const response = await fetch(`${BASE_URL}/normal`)

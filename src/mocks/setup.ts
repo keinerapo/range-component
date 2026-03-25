@@ -6,11 +6,7 @@ import { server } from "./server";
 
 expect.extend(toHaveNoViolations);
 
-export const axe = configureAxe({
-  rules: {
-    region: { enabled: false },
-  },
-});
+export const axe = configureAxe({});
 
 beforeAll(() => {
   server.listen({ onUnhandledRequest: "warn" });
