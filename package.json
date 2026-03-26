@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "packageManager": "pnpm@10.17.1",
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=10"
+  },
   "scripts": {
     "dev": "next dev -p 8080",
     "build": "next build",
@@ -14,7 +18,8 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "audit": "pnpm audit --audit-level=moderate"
   },
   "dependencies": {
     "next": "^16.2.1",

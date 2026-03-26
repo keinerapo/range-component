@@ -10,6 +10,12 @@ A range slider built with Next.js. Includes two exercises: a normal range with e
 - **Vitest** + **React Testing Library** + **MSW** — unit and integration tests
 - **Playwright** — E2E tests
 - **pnpm** — package manager
+- **GitHub Actions** — CI pipeline (lint → test → build → E2E → audit)
+
+## Requirements
+
+- Node.js ≥ 22 (see `.nvmrc`)
+- pnpm ≥ 10 (declared in `packageManager`)
 
 ## Setup
 
@@ -42,10 +48,11 @@ pnpm lint             # ESLint check
 pnpm lint:fix         # ESLint fix
 pnpm test             # Vitest watch mode
 pnpm test:run         # Vitest single run
-pnpm test:coverage    # Vitest with coverage report
+pnpm test:coverage    # Vitest with coverage report (enforces thresholds)
 pnpm test:e2e         # Playwright (requires a prior build)
 pnpm test:e2e:ui      # Playwright interactive UI mode
 pnpm test:e2e:report  # Open last Playwright HTML report
+pnpm audit            # pnpm security audit (moderate+)
 ```
 
 ## Structure
@@ -68,9 +75,27 @@ e2e/            # Playwright — home, exercise1, exercise2
 
 The project was created **without any scaffolding CLI** (`create-next-app`, `npm init`, etc.). All configuration files were written by hand:
 
-- `package.json` written manually with all required dependencies
+- `package.json` written manually with all required dependencies — includes `engines` field to enforce Node ≥ 22 and pnpm ≥ 10
 - `tsconfig.json`, `next.config.ts`, `postcss.config.js`, `vitest.config.ts`, `playwright.config.ts`, `eslint.config.mjs` — all configured from scratch
+- `.nvmrc` — pins the Node.js version used by local tooling, Vercel, and the CI runner
+- `.github/workflows/ci.yml` — CI pipeline written by hand
 - Dependencies installed explicitly via `pnpm add`
+
+## CI/CD
+
+The project uses **GitHub Actions** (`.github/workflows/ci.yml`) with five jobs that run on every push and pull request to `main`:
+
+| Job | What it does | Depends on |
+|-----|-------------|-----------|
+| `lint` | ESLint across `src/` and `tests/` | — |
+| `test` | Vitest unit + integration + coverage thresholds | — |
+| `build` | `next build` — verifies the production bundle compiles | lint, test |
+| `e2e` | Playwright Chromium tests against the production build | build |
+| `audit` | `pnpm audit --audit-level=moderate` | — |
+
+`lint` and `test` run in parallel. `build` only starts if both pass. `e2e` reuses the cached `.next/` output from `build` to avoid rebuilding.
+
+Playwright and coverage artefacts are uploaded on every run (including failures) and retained for 7 days, making it possible to inspect reports directly from the GitHub Actions UI without re-running locally.
 
 ## Key technical decisions
 
@@ -85,6 +110,9 @@ All slider logic (keyboard, pointer, ARIA, clamp, snap) lives in a standalone ho
 
 **No `useCallback` in `useRangeSlider` — intentional**
 The internal functions of the hook (`handleKeyDown`, `handlePointerDown`, `handlePointerMove`, etc.) are not wrapped in `useCallback`. This is a deliberate decision: React's own documentation states that `useCallback` is a performance optimization that should only be applied when there is a measurable rendering problem — not as a preventive measure. In this project, `RangeThumb` and `RangeTrack` are not wrapped in `React.memo`, so stabilising callback references would have zero effect on re-renders. The slider renders a minimal DOM (two thumbs + one track), and even during drag at 60fps there is no perceptible performance bottleneck. Adding `useCallback` without a measurable problem would only introduce a complex dependency graph across tightly coupled internal functions (each one referencing state, refs, and other functions), increasing maintenance cost and cognitive load for no practical gain.
+
+**Coverage thresholds in `vitest.config.ts` — CI enforcement**
+`pnpm test:coverage` enforces minimum thresholds (`statements: 99`, `functions: 100`, `lines: 99`, `branches: 95`), making the CI `test` job fail if coverage drops below them. Next.js server-only files (`layout.tsx`, `app/page.tsx`, API routes) and pure type declaration files are explicitly excluded from the coverage scope — they have no executable logic to instrument and are validated by E2E tests instead.
 
 ## Accessibility
 
